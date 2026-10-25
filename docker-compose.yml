@@ -1,0 +1,23 @@
+services:
+  yunque:
+    build: .
+    image: yunque:local
+    ports:
+      - "8080:8080"
+    volumes:
+      - yunque-data:/data
+    environment:
+      YUNQUE_ADDR: ":8080"
+      YUNQUE_DB_PATH: /data/yunque.db
+      YUNQUE_ASSETS_DIR: /data/assets
+      YUNQUE_MIGRATIONS_DIR: /app/migrations
+      YUNQUE_STATIC_DIR: /app/static
+      # Same-origin SPA: leave empty. For a public URL set e.g. https://docs.example.com
+      YUNQUE_ALLOWED_ORIGIN: ""
+      # Require HTTPS reverse proxy in production. For plain http://localhost set "false".
+      YUNQUE_COOKIE_SECURE: "true"
+      # YUNQUE_VERSION: "0.1.0"
+    restart: unless-stopped
+
+volumes:
+  yunque-data:

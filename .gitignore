@@ -1,0 +1,40 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.sw?
+*.suo
+
+# Logs & local env
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+.env
+.env.*
+!.env.example
+*.local
+
+# Backend — runtime data & build
+backend/data/
+backend/bin/
+backend/*.db
+backend/*.db-*
+backend/coverage.out
+backend/coverage.html
+*.test
+
+# Frontend — deps & build
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.tsbuildinfo
+frontend/coverage/
+
+# Local design / scratch assets (not part of the app)
+design/
+files/
+
+# Optional Go vendor (if ever used)
+vendor/

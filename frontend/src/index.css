@@ -1,0 +1,252 @@
+@import "tailwindcss";
+@import "@fontsource/geist/400.css";
+@import "@fontsource/geist/500.css";
+@import "@fontsource/geist/600.css";
+@import "@fontsource/jetbrains-mono/500.css";
+
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-background: #fbfbfb;
+  --color-foreground: #18181b;
+  --color-surface: #ffffff;
+  --color-surface-muted: #fafafa;
+  --color-surface-hover: #f4f4f5;
+  --color-sidebar: #f8f8f9;
+  --color-border: #e4e4e7;
+  --color-border-subtle: #f4f4f5;
+  --color-muted: #71717a;
+  --color-muted-foreground: #52525b;
+  --color-primary: #121212;
+  --color-primary-foreground: #ffffff;
+  --color-primary-hover: #000000;
+  --color-ring: #121212;
+  --color-destructive: #b91c1c;
+  --color-success: #059669;
+  --color-success-muted: #ecfdf5;
+  --color-success-border: #a7f3d0;
+  --color-warning: #d97706;
+  --color-warning-muted: #fffbeb;
+  --color-warning-border: #fde68a;
+
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+}
+
+.prose-editor p {
+  margin: 0.75rem 0;
+}
+
+.prose-editor h1,
+.prose-editor h2,
+.prose-editor h3,
+.prose-editor h4 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.prose-editor h1 {
+  font-size: 1.875rem;
+}
+
+.prose-editor h2 {
+  font-size: 1.5rem;
+}
+
+.prose-editor h3 {
+  font-size: 1.25rem;
+}
+
+.prose-editor ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0.5rem 0;
+}
+
+.prose-editor ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin: 0.5rem 0;
+}
+
+.prose-editor blockquote {
+  border-left: 2px solid #18181b;
+  padding-left: 1rem;
+  color: #52525b;
+  margin: 0.75rem 0;
+}
+
+.prose-editor pre {
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 13px;
+  margin: 0.75rem 0;
+}
+
+/* NodeView code blocks own their chrome; avoid double border/margin from pre rules */
+.prose-editor .code-block-node {
+  margin: 0.75rem 0;
+}
+.prose-editor .code-block-node pre {
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  background: transparent;
+}
+
+.prose-editor code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.9em;
+}
+
+.prose-editor img {
+  max-width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #e4e4e7;
+}
+
+.prose-editor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75rem 0;
+}
+
+.prose-editor td,
+.prose-editor th {
+  border: 1px solid #e4e4e7;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose-editor .is-empty::before {
+  color: #a1a1aa;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Syntax highlighting (editor + reader) — zinc-friendly hljs tokens */
+.hljs {
+  color: #18181b;
+  background: transparent;
+}
+.hljs-comment,
+.hljs-quote {
+  color: #71717a;
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-addition {
+  color: #7c3aed;
+}
+.hljs-number,
+.hljs-string,
+.hljs-meta .hljs-meta-string,
+.hljs-literal,
+.hljs-doctag,
+.hljs-regexp {
+  color: #059669;
+}
+.hljs-title,
+.hljs-section,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: #2563eb;
+}
+.hljs-attribute,
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-class .hljs-title,
+.hljs-type {
+  color: #d97706;
+}
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link {
+  color: #db2777;
+}
+.hljs-built_in,
+.hljs-builtin-name {
+  color: #0891b2;
+}
+.hljs-meta,
+.hljs-deletion {
+  color: #a1a1aa;
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 700;
+}
+
+.prose-editor pre code.hljs {
+  display: block;
+  padding: 0;
+  background: transparent;
+}
+
+/* Collaboration carets */
+.collaboration-carets__caret {
+  border-left: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  margin-left: -1px;
+  margin-right: -1px;
+  pointer-events: none;
+  position: relative;
+  word-break: normal;
+}
+
+.collaboration-carets__label {
+  border-radius: 0.25rem 0.25rem 0.25rem 0;
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  left: -1px;
+  line-height: normal;
+  padding: 0.1rem 0.3rem;
+  position: absolute;
+  top: -1.4em;
+  user-select: none;
+  white-space: nowrap;
+}
