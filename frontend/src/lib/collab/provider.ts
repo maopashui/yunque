@@ -7,6 +7,7 @@ import {
 } from 'y-protocols/awareness'
 import i18n from '@/i18n'
 import { resolveAvatarColor } from '@/lib/avatar-color'
+import { withBase } from '@/lib/base-path'
 
 export type CollabStatus = 'connecting' | 'synced' | 'offline' | 'error'
 
@@ -66,7 +67,7 @@ function fromBase64(b64: string): Uint8Array {
 
 function wsURL(documentId: string): string {
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  return `${proto}//${window.location.host}/api/documents/${documentId}/collab`
+  return `${proto}//${window.location.host}${withBase(`/api/documents/${documentId}/collab`)}`
 }
 
 export type YunQueCollabProviderOptions = {

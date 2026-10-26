@@ -71,6 +71,26 @@ func TestUploadAndOpenAssetRequiresRole(t *testing.T) {
 	if asset.URL == "" || asset.MIME != "image/png" {
 		t.Fatalf("asset=%+v", asset)
 	}
+	wantURL := "/api/documents/" + doc.ID + "/assets/" + asset.ID
+	if asset.URL != wantURL {
+		t.Fatalf("asset.URL = %q, want %q", asset.URL, wantURL)
+	}
+
+	svc.SetBasePath("/yunque")
+	assetPrefixed, err := svc.UploadAsset(context.Background(), UploadAssetInput{
+		ActorID:    owner.ID,
+		DocumentID: doc.ID,
+		Filename:   "dot2.png",
+		Body:       bytes.NewReader(buf.Bytes()),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantPrefixed := "/yunque/api/documents/" + doc.ID + "/assets/" + assetPrefixed.ID
+	if assetPrefixed.URL != wantPrefixed {
+		t.Fatalf("prefixed asset.URL = %q, want %q", assetPrefixed.URL, wantPrefixed)
+	}
+	svc.SetBasePath("")
 	if _, err := os.Stat(filepath.Join(assetsDir, doc.ID, asset.ID+".png")); err != nil {
 		t.Fatalf("disk file: %v", err)
 	}

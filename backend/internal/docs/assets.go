@@ -36,6 +36,14 @@ func (s *Service) ConfigureAssets(dir string, maxBytes int64) {
 	}
 }
 
+// SetBasePath sets the public URL prefix for asset links (e.g. "/yunque").
+func (s *Service) SetBasePath(basePath string) {
+	s.basePath = strings.TrimSuffix(strings.TrimSpace(basePath), "/")
+	if s.basePath == "/" {
+		s.basePath = ""
+	}
+}
+
 func (s *Service) assetsRoot() string {
 	if s.assetsDir != "" {
 		return s.assetsDir
@@ -54,8 +62,8 @@ func (s *Service) assetDiskPath(documentID, assetID, ext string) string {
 	return filepath.Join(s.assetsRoot(), documentID, assetID+ext)
 }
 
-func AssetPublicURL(documentID, assetID string) string {
-	return fmt.Sprintf("/api/documents/%s/assets/%s", documentID, assetID)
+func (s *Service) assetPublicURL(documentID, assetID string) string {
+	return fmt.Sprintf("%s/api/documents/%s/assets/%s", s.basePath, documentID, assetID)
 }
 
 var allowedImageMIME = map[string]string{
@@ -126,7 +134,7 @@ func (s *Service) UploadAsset(ctx context.Context, in UploadAssetInput) (Asset, 
 		MIME:       mime,
 		SizeBytes:  int64(len(data)),
 		Ext:        ext,
-		URL:        AssetPublicURL(in.DocumentID, id),
+		URL:        s.assetPublicURL(in.DocumentID, id),
 		CreatedAt:  now,
 	}
 
@@ -155,7 +163,7 @@ func (s *Service) OpenAsset(ctx context.Context, actorID, documentID, assetID st
 	if err != nil {
 		return Asset{}, nil, err
 	}
-	asset.URL = AssetPublicURL(documentID, assetID)
+	asset.URL = s.assetPublicURL(documentID, assetID)
 	path := s.assetDiskPath(documentID, assetID, asset.Ext)
 	f, err := os.Open(path)
 	if err != nil {

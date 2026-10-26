@@ -8,8 +8,9 @@ import (
 )
 
 // SPAFileServer serves files from root and falls back to index.html for
-// client-side routes. Paths under /api are never handled here.
-func SPAFileServer(root string) http.Handler {
+// client-side routes. Paths under {basePath}/api are never handled here.
+// basePath is the public mount prefix (e.g. "/yunque") or empty for root.
+func SPAFileServer(root, basePath string) http.Handler {
 	absRoot, err := filepath.Abs(root)
 	if err != nil {
 		absRoot = root
@@ -22,7 +23,20 @@ func SPAFileServer(root string) http.Handler {
 			return
 		}
 
-		rel := strings.TrimPrefix(filepath.Clean(r.URL.Path), "/")
+		urlPath := r.URL.Path
+		if basePath != "" {
+			switch {
+			case urlPath == basePath:
+				urlPath = "/"
+			case strings.HasPrefix(urlPath, basePath+"/"):
+				urlPath = urlPath[len(basePath):]
+			default:
+				http.NotFound(w, r)
+				return
+			}
+		}
+
+		rel := strings.TrimPrefix(filepath.Clean(urlPath), "/")
 		if rel == "." || rel == ".." {
 			rel = ""
 		}
@@ -34,7 +48,11 @@ func SPAFileServer(root string) http.Handler {
 
 		info, err := os.Stat(target)
 		if err == nil && !info.IsDir() {
-			fileServer.ServeHTTP(w, r)
+			r2 := r.Clone(r.Context())
+			u := *r.URL
+			u.Path = urlPath
+			r2.URL = &u
+			fileServer.ServeHTTP(w, r2)
 			return
 		}
 

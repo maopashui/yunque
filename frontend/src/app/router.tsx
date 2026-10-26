@@ -2,15 +2,18 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from '@/app/auth-context'
 import { ProtectedRoute } from '@/app/protected-route'
 import { AppShell } from '@/components/layout/app-shell'
+import { appBase } from '@/lib/base-path'
 import { AdminPage } from '@/pages/admin'
 import { DocumentReaderPage } from '@/pages/document-reader'
 import { LoginPage } from '@/pages/login'
 import { RegisterPage } from '@/pages/register'
 import { WorkspacePage } from '@/pages/workspace'
 
+const routerBasename = appBase() || undefined
+
 export function AppRouter() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename}>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />

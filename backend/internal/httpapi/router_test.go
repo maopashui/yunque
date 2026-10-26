@@ -136,3 +136,54 @@ func TestMeUnauthorized(t *testing.T) {
 		t.Fatalf("status = %d", rec.Code)
 	}
 }
+
+func TestHealthWithBasePath(t *testing.T) {
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "test.db")
+	sqlDB, err := db.Open(dbPath)
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+	t.Cleanup(func() { _ = sqlDB.Close() })
+
+	migrationsDir := filepath.Join("..", "..", "migrations")
+	if err := db.Migrate(sqlDB, migrationsDir); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+
+	cfg := config.Config{
+		BasePath:        "/yunque",
+		CookieName:      "yunque_session",
+		SessionHTTPOnly: true,
+		Version:         "test",
+		SessionTTL:      time.Hour,
+	}
+	authStore := auth.NewStore(sqlDB)
+	svc := auth.NewService(authStore, cfg.SessionTTL)
+	docsSvc := docs.NewService(docs.NewStore(sqlDB), userlookup.FromAuthStore(authStore))
+	docsSvc.SetBasePath(cfg.BasePath)
+	collabHub := collab.NewHub(collab.NewStore(sqlDB), nil)
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	router := httpapi.NewRouter(cfg, svc, docsSvc, collabHub, logger)
+
+	req := httptest.NewRequest(http.MethodGet, "/yunque/api/health", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("prefixed health status = %d body=%s", rec.Code, rec.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/api/health", nil)
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("root health without base want 404, got %d", rec.Code)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/", nil)
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusFound || rec.Header().Get("Location") != "/yunque/" {
+		t.Fatalf("root redirect: status=%d loc=%q", rec.Code, rec.Header().Get("Location"))
+	}
+}

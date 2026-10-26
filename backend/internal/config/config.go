@@ -3,11 +3,13 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
 type Config struct {
 	Addr            string
+	BasePath        string // e.g. "/yunque"; empty means site root
 	DBPath          string
 	MigrationsDir   string
 	AssetsDir       string
@@ -24,6 +26,7 @@ type Config struct {
 func Load() Config {
 	return Config{
 		Addr:            env("YUNQUE_ADDR", ":8080"),
+		BasePath:        NormalizeBasePath(env("YUNQUE_BASE_PATH", "")),
 		DBPath:          env("YUNQUE_DB_PATH", "data/yunque.db"),
 		MigrationsDir:   env("YUNQUE_MIGRATIONS_DIR", "migrations"),
 		AssetsDir:       env("YUNQUE_ASSETS_DIR", "data/assets"),
@@ -37,6 +40,26 @@ func Load() Config {
 		AllowedOrigin:   envOr("YUNQUE_ALLOWED_ORIGIN", "http://localhost:5173"),
 		SessionHTTPOnly: true,
 	}
+}
+
+// NormalizeBasePath returns "" for root, or a path like "/yunque" (leading slash, no trailing slash).
+func NormalizeBasePath(raw string) string {
+	p := strings.TrimSpace(raw)
+	if p == "" || p == "/" {
+		return ""
+	}
+	if !strings.HasPrefix(p, "/") {
+		p = "/" + p
+	}
+	return strings.TrimSuffix(p, "/")
+}
+
+// CookiePath is the session cookie Path (BasePath or "/").
+func (c Config) CookiePath() string {
+	if c.BasePath != "" {
+		return c.BasePath
+	}
+	return "/"
 }
 
 func env(key, fallback string) string {

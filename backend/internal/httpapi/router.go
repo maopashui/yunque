@@ -38,82 +38,93 @@ func NewRouter(cfg config.Config, authSvc *auth.Service, docsSvc *docs.Service, 
 	r.Use(SecurityHeaders)
 	r.Use(CORS(cfg.AllowedOrigin))
 
-	r.Route("/api", func(r chi.Router) {
-		r.Use(MaxBodyBytes(defaultJSONBodyLimit))
-		r.Get("/health", h.Health)
+	mount := func(r chi.Router) {
+		r.Route("/api", func(r chi.Router) {
+			r.Use(MaxBodyBytes(defaultJSONBodyLimit))
+			r.Get("/health", h.Health)
 
-		r.Route("/auth", func(r chi.Router) {
-			r.Get("/registration", h.RegistrationStatus)
-			authLimit := RateLimit(authRateLimit, authRateWindow)
-			r.With(authLimit).Post("/register", h.Register)
-			r.With(authLimit).Post("/login", h.Login)
-			r.Post("/logout", h.Logout)
-			r.With(RequireAuth(authSvc, cfg)).Get("/me", h.Me)
-		})
-
-		r.Group(func(r chi.Router) {
-			r.Use(RequireAuth(authSvc, cfg))
-
-			r.Route("/admin", func(r chi.Router) {
-				r.Use(RequireAdmin)
-				r.Get("/settings", h.GetAdminSettings)
-				r.Patch("/settings", h.PatchAdminSettings)
-				r.Get("/users", h.ListAdminUsers)
-				r.Patch("/users/{userId}", h.PatchAdminUser)
-				r.Delete("/users/{userId}", h.DeleteAdminUser)
+			r.Route("/auth", func(r chi.Router) {
+				r.Get("/registration", h.RegistrationStatus)
+				authLimit := RateLimit(authRateLimit, authRateWindow)
+				r.With(authLimit).Post("/register", h.Register)
+				r.With(authLimit).Post("/login", h.Login)
+				r.Post("/logout", h.Logout)
+				r.With(RequireAuth(authSvc, cfg)).Get("/me", h.Me)
 			})
 
-			r.Get("/documents", h.ListDocuments)
-			r.Post("/documents", h.CreateDocument)
-			r.With(MaxBodyBytes(importJSONBodyLimit)).Post("/documents/import", h.ImportDocument)
+			r.Group(func(r chi.Router) {
+				r.Use(RequireAuth(authSvc, cfg))
 
-			r.Route("/documents/{id}", func(r chi.Router) {
-				r.Get("/", h.GetDocument)
-				r.Patch("/", h.PatchDocument)
-				r.Delete("/", h.DeleteDocument)
-				r.Post("/restore", h.RestoreDocument)
-				r.Get("/export.md", h.ExportDocument)
-				r.Get("/changes", h.ListChanges)
+				r.Route("/admin", func(r chi.Router) {
+					r.Use(RequireAdmin)
+					r.Get("/settings", h.GetAdminSettings)
+					r.Patch("/settings", h.PatchAdminSettings)
+					r.Get("/users", h.ListAdminUsers)
+					r.Patch("/users/{userId}", h.PatchAdminUser)
+					r.Delete("/users/{userId}", h.DeleteAdminUser)
+				})
 
-				r.Get("/snapshots", h.ListSnapshots)
-				r.Post("/snapshots", h.CreateSnapshot)
-				r.Post("/snapshots/cleanup", h.CleanupSnapshots)
-				r.Get("/snapshots/{snapshotId}", h.GetSnapshot)
-				r.Get("/snapshots/{snapshotId}/diff", h.CompareSnapshot)
-				r.Post("/snapshots/{snapshotId}/restore", h.RestoreSnapshot)
+				r.Get("/documents", h.ListDocuments)
+				r.Post("/documents", h.CreateDocument)
+				r.With(MaxBodyBytes(importJSONBodyLimit)).Post("/documents/import", h.ImportDocument)
 
-				r.With(MaxBodyBytes(importJSONBodyLimit)).Put("/content", h.SyncContent)
-				r.Get("/collab", h.CollabWS)
-				r.Post("/assets", h.UploadDocumentAsset)
-				r.Get("/assets/{assetId}", h.GetDocumentAsset)
-				r.Get("/members", h.ListMembers)
-				r.Post("/members", h.AddMember)
-				r.Patch("/members/{userId}", h.UpdateMember)
-				r.Delete("/members/{userId}", h.RemoveMember)
-				r.Get("/blocks", h.ListBlocks)
-				r.Get("/blocks/index", h.ListBlockIndex)
-				r.Get("/blocks/window", h.ListBlocksWindow)
-				r.Post("/blocks/batch", h.ListBlocksBatch)
-				r.Get("/toc", h.ListTOC)
-				r.Post("/blocks", h.CreateBlock)
-				r.Get("/blocks/{blockId}", h.GetBlock)
-				r.Put("/blocks/{blockId}", h.UpdateBlock)
-				r.Delete("/blocks/{blockId}", h.DeleteBlock)
-				r.Post("/blocks/{blockId}/move", h.MoveBlock)
+				r.Route("/documents/{id}", func(r chi.Router) {
+					r.Get("/", h.GetDocument)
+					r.Patch("/", h.PatchDocument)
+					r.Delete("/", h.DeleteDocument)
+					r.Post("/restore", h.RestoreDocument)
+					r.Get("/export.md", h.ExportDocument)
+					r.Get("/changes", h.ListChanges)
+
+					r.Get("/snapshots", h.ListSnapshots)
+					r.Post("/snapshots", h.CreateSnapshot)
+					r.Post("/snapshots/cleanup", h.CleanupSnapshots)
+					r.Get("/snapshots/{snapshotId}", h.GetSnapshot)
+					r.Get("/snapshots/{snapshotId}/diff", h.CompareSnapshot)
+					r.Post("/snapshots/{snapshotId}/restore", h.RestoreSnapshot)
+
+					r.With(MaxBodyBytes(importJSONBodyLimit)).Put("/content", h.SyncContent)
+					r.Get("/collab", h.CollabWS)
+					r.Post("/assets", h.UploadDocumentAsset)
+					r.Get("/assets/{assetId}", h.GetDocumentAsset)
+					r.Get("/members", h.ListMembers)
+					r.Post("/members", h.AddMember)
+					r.Patch("/members/{userId}", h.UpdateMember)
+					r.Delete("/members/{userId}", h.RemoveMember)
+					r.Get("/blocks", h.ListBlocks)
+					r.Get("/blocks/index", h.ListBlockIndex)
+					r.Get("/blocks/window", h.ListBlocksWindow)
+					r.Post("/blocks/batch", h.ListBlocksBatch)
+					r.Get("/toc", h.ListTOC)
+					r.Post("/blocks", h.CreateBlock)
+					r.Get("/blocks/{blockId}", h.GetBlock)
+					r.Put("/blocks/{blockId}", h.UpdateBlock)
+					r.Delete("/blocks/{blockId}", h.DeleteBlock)
+					r.Post("/blocks/{blockId}/move", h.MoveBlock)
+				})
 			})
 		})
-	})
 
-	if cfg.StaticDir != "" {
-		spa := SPAFileServer(cfg.StaticDir)
-		r.NotFound(spa.ServeHTTP)
-		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
-			if r.Method == http.MethodGet || r.Method == http.MethodHead {
-				spa.ServeHTTP(w, r)
-				return
-			}
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		if cfg.StaticDir != "" {
+			spa := SPAFileServer(cfg.StaticDir, cfg.BasePath)
+			r.NotFound(spa.ServeHTTP)
+			r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method == http.MethodGet || r.Method == http.MethodHead {
+					spa.ServeHTTP(w, r)
+					return
+				}
+				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			})
+		}
+	}
+
+	if cfg.BasePath != "" {
+		r.Get("/", func(w http.ResponseWriter, req *http.Request) {
+			http.Redirect(w, req, cfg.BasePath+"/", http.StatusFound)
 		})
+		r.Route(cfg.BasePath, mount)
+	} else {
+		mount(r)
 	}
 
 	return r

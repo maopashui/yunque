@@ -16,6 +16,7 @@ type Service struct {
 	users         UserLookup
 	assetsDir     string
 	maxAssetBytes int64
+	basePath      string // normalized public mount path, e.g. "/yunque"
 }
 
 func NewService(store *Store, users UserLookup) *Service {

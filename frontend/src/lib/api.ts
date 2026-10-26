@@ -1,3 +1,5 @@
+import { withBase } from '@/lib/base-path'
+
 export type ApiError = {
   error: {
     code: string
@@ -225,7 +227,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers['Content-Type'] = 'application/json'
   }
 
-  const res = await fetch(path, {
+  const res = await fetch(withBase(path), {
     ...init,
     credentials: 'include',
     headers,
@@ -345,7 +347,7 @@ export const api = {
       body: JSON.stringify(body),
     }),
   exportDocument: async (id: string) => {
-    const res = await fetch(`/api/documents/${id}/export.md`, {
+    const res = await fetch(withBase(`/api/documents/${id}/export.md`), {
       credentials: 'include',
     })
     if (!res.ok) {
@@ -418,7 +420,7 @@ export const api = {
       body: JSON.stringify(body),
     }),
   removeMember: async (id: string, userId: string) => {
-    const res = await fetch(`/api/documents/${id}/members/${userId}`, {
+    const res = await fetch(withBase(`/api/documents/${id}/members/${userId}`), {
       method: 'DELETE',
       credentials: 'include',
     })

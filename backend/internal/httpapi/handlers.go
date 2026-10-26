@@ -133,7 +133,7 @@ func (h *Handlers) setSessionCookie(w http.ResponseWriter, value string, expires
 	http.SetCookie(w, &http.Cookie{
 		Name:     h.Config.CookieName,
 		Value:    value,
-		Path:     "/",
+		Path:     h.Config.CookiePath(),
 		Expires:  expires,
 		HttpOnly: h.Config.SessionHTTPOnly,
 		Secure:   h.Config.CookieSecure,
@@ -145,7 +145,7 @@ func (h *Handlers) clearSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     h.Config.CookieName,
 		Value:    "",
-		Path:     "/",
+		Path:     h.Config.CookiePath(),
 		Expires:  time.Unix(0, 0),
 		MaxAge:   -1,
 		HttpOnly: h.Config.SessionHTTPOnly,

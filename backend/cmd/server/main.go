@@ -38,6 +38,7 @@ func main() {
 	authSvc := auth.NewService(authStore, cfg.SessionTTL)
 	docsSvc := docs.NewService(docs.NewStore(sqlDB), userlookup.FromAuthStore(authStore))
 	docsSvc.ConfigureAssets(cfg.AssetsDir, cfg.MaxAssetBytes)
+	docsSvc.SetBasePath(cfg.BasePath)
 	collabHub := collab.NewHub(collab.NewStore(sqlDB), logger)
 	router := httpapi.NewRouter(cfg, authSvc, docsSvc, collabHub, logger)
 
@@ -48,7 +49,7 @@ func main() {
 	}
 
 	go func() {
-		logger.Info("server starting", "addr", cfg.Addr, "version", cfg.Version)
+		logger.Info("server starting", "addr", cfg.Addr, "base_path", cfg.BasePath, "version", cfg.Version)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("server failed", "error", err)
 			os.Exit(1)

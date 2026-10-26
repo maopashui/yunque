@@ -1,6 +1,10 @@
 services:
   yunque:
-    build: .
+    build:
+      context: .
+      args:
+        # Must match environment.YUNQUE_BASE_PATH (rebuild after changing).
+        YUNQUE_BASE_PATH: ${YUNQUE_BASE_PATH:-/}
     image: yunque:local
     ports:
       - "8080:8080"
@@ -8,6 +12,7 @@ services:
       - yunque-data:/data
     environment:
       YUNQUE_ADDR: ":8080"
+      YUNQUE_BASE_PATH: ${YUNQUE_BASE_PATH:-/}
       YUNQUE_DB_PATH: /data/yunque.db
       YUNQUE_ASSETS_DIR: /data/assets
       YUNQUE_MIGRATIONS_DIR: /app/migrations
